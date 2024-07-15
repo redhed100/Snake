@@ -14,7 +14,7 @@ enum Dir {
     Left,
     Down,
     Right,
-    None
+    //None
 }
 
 // impl Dir {
@@ -73,20 +73,20 @@ impl Snake {
         snake
     }
 
-    fn headX(&self) -> u16 {
+    fn head_x(&self) -> u16 {
         self.snake.back().unwrap().0.x
     }
 
-    fn headY(&self) -> u16 {
+    fn head_y(&self) -> u16 {
         self.snake.back().unwrap().0.y
     }
 
-    pub fn getDir(&self) -> Dir {
+    pub fn get_dir(&self) -> Dir {
         self.dir //.clone()
     }
 
     pub fn is_dead(&self, map: &Map) -> bool {
-        if self.headX() <= 0 || self.headX() > map.width || self.headY() <= 0 || self.headY() > map.height { return true; }
+        if self.head_x() <= 0 || self.head_x() > map.width || self.head_y() <= 0 || self.head_y() > map.height { return true; }
         return false
     }
 
@@ -107,7 +107,7 @@ impl Snake {
             Dir::Left => { p.x -= 1 },
             Dir::Down => { p.y += 1 },
             Dir::Right => { p.x += 1 },
-            _ => {}
+            //_ => {}
         }
         // self.move_head();
         self.snake.push_back((p, self.dir.clone()));
@@ -116,92 +116,92 @@ impl Snake {
 
     pub fn step(&mut self, map: &Map) {
         let last_pix =  self.move_full();
-        let isDead = self.is_dead(&map);
-        self.display(last_pix, isDead);
+        let is_dead = self.is_dead(&map);
+        self.display(last_pix, is_dead);
     }
 
     pub fn display_full(&self) {
-        execute!(stdout(), SetForegroundColor(Color::Rgb { r: 66, g: 111, b: 227 }));
-        let mut lastPix = Pos::new(0, 0);
+        execute!(stdout(), SetForegroundColor(Color::Rgb { r: 66, g: 111, b: 227 })).unwrap();
+        let mut last_pix = Pos::new(0, 0);
         for (i, (pSnakePos, pSnakeDir)) in self.snake.iter().enumerate() {
-            if (pSnakePos.x+pSnakePos.y) % 2 == 0 { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 170, g: 215, b: 81 })); }
-            else { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 162, g: 209, b: 73 })); }
+            if (pSnakePos.x+pSnakePos.y) % 2 == 0 { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 170, g: 215, b: 81 })).unwrap(); }
+            else { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 162, g: 209, b: 73 })).unwrap(); }
             if i == 0 {
                 match pSnakeDir {
                     Dir::Up => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("\\/")
-                        );
+                        ).unwrap();
                     },
                     Dir::Left => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("═>")
-                        );
+                        ).unwrap();
                     },
                     Dir::Down => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("/\\")
-                        );
+                        ).unwrap();
                     },
                     Dir::Right => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("<═")
-                        );
+                        ).unwrap();
                     },
-                    _ => {}
+                    //_ => {}
                 }
             }
             else if i > 0 && i < self.snake.len() - 1 {
                 match pSnakeDir {
                     Dir::Up => {
-                        if lastPix.x == pSnakePos.x - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╧┘"));
+                        if last_pix.x == pSnakePos.x - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╧┘")).unwrap();
                         }
-                        else if lastPix.x == pSnakePos.x + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("└╧"));
+                        else if last_pix.x == pSnakePos.x + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("└╧")).unwrap();
                         }
-                        else if lastPix.y == pSnakePos.y + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("││"));
+                        else if last_pix.y == pSnakePos.y + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("││")).unwrap();
                         }
                     },
                     Dir::Left => {
-                        if lastPix.y == pSnakePos.y - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╧┘"));
+                        if last_pix.y == pSnakePos.y - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╧┘")).unwrap();
                         }
-                        else if lastPix.x == pSnakePos.x + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("══"));
+                        else if last_pix.x == pSnakePos.x + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("══")).unwrap();
                         }
-                        else if lastPix.y == pSnakePos.y + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╤┐"));
+                        else if last_pix.y == pSnakePos.y + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╤┐")).unwrap();
                         }
                     },
                     Dir::Down => {
-                        if lastPix.x == pSnakePos.x - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╤┐"));
+                        if last_pix.x == pSnakePos.x - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("╤┐")).unwrap();
                         }
-                        else if lastPix.y == pSnakePos.y - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("││"));
+                        else if last_pix.y == pSnakePos.y - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("││")).unwrap();
                         }
-                        else if lastPix.x == pSnakePos.x + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("┌╤"));
+                        else if last_pix.x == pSnakePos.x + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("┌╤")).unwrap();
                         }
                     },
                     Dir::Right => {
-                        if lastPix.x == pSnakePos.x - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("══"));
+                        if last_pix.x == pSnakePos.x - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("══")).unwrap();
                         }
-                        else if lastPix.y == pSnakePos.y - 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("└╧"));
+                        else if last_pix.y == pSnakePos.y - 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("└╧")).unwrap();
                         }
-                        else if lastPix.y == pSnakePos.y + 1 {
-                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("┌╤"));
+                        else if last_pix.y == pSnakePos.y + 1 {
+                            execute!(stdout(), cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1), style::Print("┌╤")).unwrap();
                         }
                     },
-                    _ => {}
+                    //_ => {}
                 }
             }
             else /* if i >= self.snake.len() - 1 */ {
@@ -210,34 +210,34 @@ impl Snake {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("/\\")
-                        );
+                        ).unwrap();
                     },
                     Dir::Left => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("<═")
-                        );
+                        ).unwrap();
                     },
                     Dir::Down => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("\\/")
-                        );
+                        ).unwrap();
                     },
                     Dir::Right => {
                         execute!(stdout(),
                             cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
                             style::Print("═>")
-                        );
+                        ).unwrap();
                     },
-                    _ => {}
+                    //_ => {}
                 }
             }
 
 
-            lastPix = pSnakePos.clone();
+            last_pix = pSnakePos.clone();
         }
-        execute!(stdout(), ResetColor);
+        execute!(stdout(), ResetColor).unwrap();
         /*
 
     /\
@@ -262,7 +262,7 @@ darkBG:  Rgb { r: 162, g: 209, b: 73 }
         */
     }
 
-    pub fn display(&self, last_pix: (Pos, Dir), isDead: bool) {
+    pub fn display(&self, last_pix: (Pos, Dir), is_dead: bool) {
 
     }
 }
@@ -282,25 +282,25 @@ impl Map {
             cursor::MoveTo(0, 0),
             style::SetBackgroundColor(Color::Rgb {r: 60, g: 60, b: 60}),
             style::SetForegroundColor(Color::Rgb {r: 200, g: 200, b: 200}),
-        );
+        ).unwrap();
         for y in 0..self.height+2 {
             if y == 0 {
-                execute!(stdout(), style::Print("┌"));
-                for x in 0..self.width*2 { execute!(stdout(), style::Print("─")); }
-                execute!(stdout(), style::Print("┐"));
+                execute!(stdout(), style::Print("┌")).unwrap();
+                for _x in 0..self.width*2 { execute!(stdout(), style::Print("─")).unwrap(); }
+                execute!(stdout(), style::Print("┐")).unwrap();
             }
             else if y < self.height+1 {
-                execute!(stdout(), cursor::MoveTo(0, y), style::Print("│"));
-                execute!(stdout(), cursor::MoveTo(self.width*2+1, y), style::Print("│"));
+                execute!(stdout(), cursor::MoveTo(0, y), style::Print("│")).unwrap();
+                execute!(stdout(), cursor::MoveTo(self.width*2+1, y), style::Print("│")).unwrap();
             }
             else if y == self.height+1 {
-                execute!(stdout(), cursor::MoveTo(0, y) , style::Print("└"));
-                for x in 0..self.width*2 { execute!(stdout(), style::Print("─")); }
-                execute!(stdout(), style::Print("┘"));
+                execute!(stdout(), cursor::MoveTo(0, y) , style::Print("└")).unwrap();
+                for _x in 0..self.width*2 { execute!(stdout(), style::Print("─")).unwrap(); }
+                execute!(stdout(), style::Print("┘")).unwrap();
             }
         }
 
-        execute!(stdout(), cursor::MoveTo(1, 1));
+        execute!(stdout(), cursor::MoveTo(1, 1)).unwrap();
         for y in 0..self.height {
             for x in 0..self.width {
                 if (y+x) % 2 == 0 {         // Light
@@ -308,19 +308,19 @@ impl Map {
                         cursor::MoveTo(x*2+1, y+1),
                         style::SetBackgroundColor(Color::Rgb { r: 170, g: 215, b: 81 }),
                         style::Print("  ")
-                    );
+                    ).unwrap();
                 }
                 else {                      // Dark
                     execute!(stdout(),
                         cursor::MoveTo(x*2+1, y+1),
                         style::SetBackgroundColor(Color::Rgb { r: 162, g: 209, b: 73 }),
                         style::Print("  ")
-                    );
+                    ).unwrap();
                 }
             }
-            execute!(stdout(), cursor::MoveTo(1, y+1));
+            execute!(stdout(), cursor::MoveTo(1, y+1)).unwrap();
         }
-        execute!(stdout(), ResetColor);
+        execute!(stdout(), ResetColor).unwrap();
     }
 }
 
@@ -329,7 +329,7 @@ fn start() {
         crossterm::cursor::Hide,
         crossterm::cursor::MoveTo(0, 0),
         crossterm::terminal::Clear(ClearType::All)
-    );
+    ).unwrap();
 }
 
 fn finish() {
@@ -338,7 +338,7 @@ fn finish() {
         crossterm::cursor::Show,
         crossterm::cursor::MoveTo(0, 0),
         crossterm::terminal::Clear(ClearType::All)
-    );
+    ).unwrap();
 
     std::process::exit(0);
 }
@@ -361,8 +361,8 @@ fn main() {
 
     let mut s1 = Instant::now();
     while AppRun {
-        let mut elapsedTime = s1.elapsed();
-        let mut fElapsedTime: f32 = elapsedTime.as_micros() as f32/1_000_000.0;
+        let elapsedTime = s1.elapsed();
+        let fElapsedTime: f32 = elapsedTime.as_micros() as f32/1_000_000.0;
         s1 = Instant::now();
 
         if poll(Duration::from_millis(500)).unwrap_or(false) {
