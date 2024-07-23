@@ -1,9 +1,10 @@
 use std::collections::VecDeque;
 use std::io::stdout;
 use std::time::{Duration, Instant};
+use crossterm::cursor::MoveTo;
 use crossterm::event::{Event, KeyCode, poll, read};
 use crossterm::{cursor, execute, style};
-use crossterm::style::{Color, ResetColor, SetBackgroundColor, SetForegroundColor};
+use crossterm::style::{style, Color, ResetColor, SetBackgroundColor, SetForegroundColor};
 use crossterm::terminal::ClearType;
 
 
@@ -53,16 +54,29 @@ impl Pos {
 
 struct Game {
     snake: Snake,
-    map: Map
+    map: Map,
+    speed: u16,
+    time: f32
 }
 
 impl Game {
     pub fn new(width: u16, height: u16) -> Game {
-        Game { snake: Snake::new((width+1)/2,(height+1)/2), map: Map::new(width, height) }
+        // Game { snake: Snake::new((width+1)/2,(height+1)/2), map: Map::new(width, height), speed: 1, time: 0.0}
+        Game { snake: Snake::new(3, 1), map: Map::new(width, height), speed: 1, time: 0.0}
+    }
+
+    pub fn is_step(&self) -> bool {
+        if self.time >= 1.0 { true }
+        else { false }
+    }
+
+    pub fn sync(&mut self, fElapsedTime: &f32) {
+        self.time += self.speed as f32 * fElapsedTime;
     }
 
     pub fn step(&mut self) {
         self.snake.step(&self.map);
+        self.time = 0.0;
     }
 }
 
@@ -105,7 +119,7 @@ impl Snake {
             Var::Ud // Up - Down
         }
         else if self.sget(i-1).x+1 == self.sget(i).x && self.sget(i+1).y+1 == self.sget(i).y ||
-                self.sget(i-1).y+1 == self.sget(i).y && self.sget(i+1).x+1 == self.sget(i).y  {
+                self.sget(i-1).y+1 == self.sget(i).y && self.sget(i+1).x+1 == self.sget(i).x  {
             Var::Lu // Left - Up
         }
         else if self.sget(i-1).x+1 == self.sget(i).x && self.sget(i+1).y-1 == self.sget(i).y ||
@@ -140,16 +154,14 @@ impl Snake {
     //     }
     // }
 
-    pub fn move_full(&mut self) -> Pos { // выдает Pos и Dir бывшего хвоста
-        let mut p = *self.snake.back().unwrap();
+    pub fn move_full(&mut self) -> Pos { // выдает Pos бывшего хвоста
+        let mut p = self.snake.back().unwrap().clone();
         match self.dir {
             Dir::Up => { p.y -= 1 },
             Dir::Left => { p.x -= 1 },
             Dir::Down => { p.y += 1 },
             Dir::Right => { p.x += 1 },
-            //_ => {}
         }
-        // self.move_head();
         self.snake.push_back(p);
         self.snake.pop_front().unwrap()
     }
@@ -157,6 +169,7 @@ impl Snake {
     pub fn step(&mut self, map: &Map) {
         let last_pix =  self.move_full();
         let is_dead = self.is_dead(&map);
+        // println!(" last_pix = {}, {} ", last_pix.x, last_pix.y);
         self.display(last_pix, is_dead);
     }
 
@@ -167,32 +180,29 @@ impl Snake {
             if (pSnakePos.x+pSnakePos.y) % 2 == 0 { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 170, g: 215, b: 81 })).unwrap(); }
             else { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 162, g: 209, b: 73 })).unwrap(); }
             if i == 0 {
-                match self.dir {
-                    Dir::Up => {
-                        execute!(stdout(),
-                            cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
-                            style::Print("\\/")
-                        ).unwrap();
-                    },
-                    Dir::Left => {
-                        execute!(stdout(),
-                            cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
-                            style::Print("═>")
-                        ).unwrap();
-                    },
-                    Dir::Down => {
-                        execute!(stdout(),
-                            cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
-                            style::Print("/\\")
-                        ).unwrap();
-                    },
-                    Dir::Right => {
-                        execute!(stdout(),
-                            cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
-                            style::Print("<═")
-                        ).unwrap();
-                    },
-                    //_ => {}
+                if self.sget(1).y+1 == self.sget(0).y {
+                    execute!(stdout(),
+                        cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
+                        style::Print("\\/")
+                    ).unwrap();
+                }
+                if self.sget(1).x+1 == self.sget(0).x {
+                    execute!(stdout(),
+                        cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
+                        style::Print("═>")
+                    ).unwrap();
+                }
+                if self.sget(1).y-1 == self.sget(0).y {
+                    execute!(stdout(),
+                        cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
+                        style::Print("/\\")
+                    ).unwrap();
+                }
+                if self.sget(1).x-1 == self.sget(0).x {
+                    execute!(stdout(),
+                        cursor::MoveTo(pSnakePos.x*2+1,pSnakePos.y+1),
+                        style::Print("<═")
+                    ).unwrap();
                 }
             }
             else if i > 0 && i < self.snake.len() - 1 {
@@ -294,7 +304,91 @@ darkBG:  Rgb { r: 162, g: 209, b: 73 }
     }
 
     pub fn display(&self, last_pix: Pos, is_dead: bool) {
+        execute!(stdout(), SetForegroundColor(Color::Rgb { r: 66, g: 111, b: 227 })).unwrap();
+        if (last_pix.x+last_pix.y) % 2 == 0 { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 170, g: 215, b: 81 })).unwrap(); }
+        else { execute!(stdout(), SetBackgroundColor(Color::Rgb { r: 162, g: 209, b: 73 })).unwrap(); }
+        execute!(stdout(),
+            cursor::MoveTo(last_pix.x*2+1, last_pix.y+1),
+            style::Print("  ")
+        ).unwrap();
 
+        if self.sget(1).y+1 == self.sget(0).y {
+            execute!(stdout(),
+                cursor::MoveTo(self.sget(0).x*2+1,self.sget(0).y+1),
+                style::Print("\\/")
+            ).unwrap();
+        }
+        else if self.sget(1).x+1 == self.sget(0).x {
+            execute!(stdout(),
+                cursor::MoveTo(self.sget(0).x*2+1,self.sget(0).y+1),
+                style::Print("═>")
+            ).unwrap();
+        }
+        else if self.sget(1).y-1 == self.sget(0).y {
+            execute!(stdout(),
+                cursor::MoveTo(self.sget(0).x*2+1,self.sget(0).y+1),
+                style::Print("/\\")
+            ).unwrap();
+        }
+        else if self.sget(1).x-1 == self.sget(0).x {
+            execute!(stdout(),
+                cursor::MoveTo(self.sget(0).x*2+1,self.sget(0).y+1),
+                style::Print("<═")
+            ).unwrap();
+        }
+
+        {
+            let i = self.snake.len()-2;
+            let p_snake_pos = self.sget(i);
+            match self.get_var(i) {
+                Var::Lr => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("══")
+                    ).unwrap();
+                },
+                Var::Ud => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("││")
+                    ).unwrap();
+                },
+                Var::Lu => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("╧┘")
+                    ).unwrap();
+                },
+                Var::Ld => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("╤┐")
+                ).unwrap();
+                },
+                Var::Ur => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("└╧")
+                    ).unwrap();
+                },
+                Var::Dr => {
+                    execute!(stdout(),
+                        cursor::MoveTo(p_snake_pos.x*2+1,p_snake_pos.y+1),
+                        style::Print("┌╤")
+                    ).unwrap();
+                }
+            }
+        } 
+
+        if !is_dead {
+            execute!(stdout(),
+                cursor::MoveTo(self.sget(self.snake.len()-1).x*2+1,self.sget(self.snake.len()-1).y+1),
+                style::Print("##")
+            ).unwrap();
+        } else {
+
+        }
+        execute!(stdout(), ResetColor).unwrap();
     }
 }
 
@@ -396,7 +490,7 @@ fn main() {
         let fElapsedTime: f32 = elapsedTime.as_micros() as f32/1_000_000.0;
         s1 = Instant::now();
 
-        if poll(Duration::from_millis(500)).unwrap_or(false) {
+        if poll(Duration::from_millis(0)).unwrap_or(false) {
             let res = read();
             if res.is_ok() {
                 match res.unwrap() {
@@ -415,7 +509,11 @@ fn main() {
             }
         }
 
-        game.step();
+        if game.is_step() {
+            game.step();
+        }
+
+        game.sync(&fElapsedTime);
 
         let FPS = 1.0/fElapsedTime;
         let s = "FPS: ".to_string() + FPS.to_string().as_str();
